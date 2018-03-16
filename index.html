@@ -3,31 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>task4</title>
-	<script src="http://d3js.org/d3.v4.min.js"></script>
-	<script src="http://d3js.org/topojson.v1.min.js"></script>
+	<script src="//d3js.org/d3.v3.min.js"></script>
+	<script src="//d3js.org/d3.geo.projection.v0.min.js"></script>
+	<script src="//d3js.org/topojson.v1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 
 	<style>
         body {
             background-color: white;
         }
 
-        svg {
-            border: 1px solid black;
-            background-color: #ffffff;
-        }
-
         .country {
             fill: #e3e3e3;
-            stroke: #766951;
+            /*stroke: #766951;*/
+			stroke: #828282;
+			stroke-width: .5px;
         }
 
 		.selected{
 			fill: #c3c3c3;
 		}
 
-        .graticule {
+		.graticule {
             fill: none;
-            stroke: #bdbdbd;
+            stroke: #d8d8d8;
             stroke-width: .5px;
         }
 
@@ -41,25 +40,26 @@
 
 <body>
 	<script>
-        var num = 2,
-            width = 628 * num,
-            height = 628 * num,
-            map_height_reduce = 260 * num,
-            map_translate_reduce = 73 * num,
-            scale = 100 * num;
+        var num = 1,
+            width = 868 * num,
+            height = 500 * num,
+            scale = 159 * num;
 
-		var svg = d3.select("body").append("svg")
-		    .attr("width", width)
-		    .attr("height", height - map_height_reduce);
+        var graticule = d3.geo.graticule();
 
-		var projection = d3.geoMercator()
-			.scale(scale)
-		    .translate([width / 2, height / 2 - map_translate_reduce]);
+        var projection = d3.geo.kavrayskiy7()
+            .scale(scale)
+            .translate([width / 2, height / 2]);
 
-		var path = d3.geoPath()
+        let svg = d3.select('body')
+            .append('svg')
+            .attr('width', width)
+			.attr('height', height);
+
+		var path = d3.geo.path()
 			.projection(projection);
 
-        d3.queue()
+        queue()
             .defer(d3.json, "world-110m2.json")
             .await(ready);
 
@@ -67,7 +67,7 @@
             // console.log(country_data)
 
 			var countries = topojson.feature(country_data, country_data.objects.countries).features;
-			console.log(countries);
+			// console.log(countries);
 			svg.append("g")
 				.selectAll(".country")
 				.data(countries)
@@ -81,14 +81,18 @@
 					d3.select(this).classed("selected",false);
                 });
 
-			var graticule = d3.geoGraticule();
-
 			svg.append("g")
-				.attr("class", "graticule")
-				.selectAll("path")
-				.data(graticule.lines)
-				.enter().append("path")
-				.attr("d", path);
+				.append('path')
+				.datum(graticule)
+				.attr('class', 'graticule')
+				.attr('d', path);
+
+			svg.append('path')
+				.datum(graticule.outline)
+				.attr('fill', 'none')
+				.attr('stroke','black')
+				.attr('d', path);
+
 
         }
 	</script>
