@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>task4</title>
-	<script src="//d3js.org/d3.v3.min.js"></script>
-	<script src="//d3js.org/d3.geo.projection.v0.min.js"></script>
-	<script src="//d3js.org/topojson.v1.min.js"></script>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
+	<script src="https://d3js.org/topojson.v1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 
 	<style>
@@ -15,7 +15,6 @@
 
         .country {
             fill: #e3e3e3;
-            /*stroke: #766951;*/
 			stroke: #828282;
 			stroke-width: .5px;
         }
@@ -24,50 +23,72 @@
 			fill: #c3c3c3;
 		}
 
+		.hidden {
+			display: none;
+		}
+
+		div.tooltip {
+    		font-family: Arial, Helvetica, sans-serif;
+			color: #000;
+			background: #fff;
+			border-radius: 3px;
+			box-shadow: 0 0 2px 0 #a6a6a6;
+			padding: .2em;
+			text-shadow: #f5f5f5 0 1px 0;
+			opacity: 0.6;
+			position: absolute;
+		}
+
 		.graticule {
-            fill: none;
-            stroke: #d8d8d8;
-            stroke-width: .5px;
+			fill: none;
+			stroke: #d8d8d8;
+			stroke-width: .5px;
         }
-
-        .graticule :nth-child(2n) {
-            stroke-dasharray: 2, 2;
-        }
-
     </style>
 
 </head>
 
 <body>
+<div id="map"></div>
 	<script>
-        var num = 1,
+        let num = 1.8,
             width = 868 * num,
             height = 500 * num,
-            scale = 159 * num;
+            scale = 159 * num,
+			mouseon_text_margin = 15;
 
-        var graticule = d3.geo.graticule();
+        let graticule = d3.geo.graticule();
 
-        var projection = d3.geo.kavrayskiy7()
+        let projection = d3.geo.kavrayskiy7()
             .scale(scale)
             .translate([width / 2, height / 2]);
 
-        let svg = d3.select('body')
-            .append('svg')
-            .attr('width', width)
-			.attr('height', height);
+        let svg = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+			.attr("height", height);
 
-		var path = d3.geo.path()
+		let path = d3.geo.path()
 			.projection(projection);
+
+		let tooltip = d3.select("#map")
+			.append("div")
+			.attr("class", "tooltip hidden");
 
         queue()
             .defer(d3.json, "world-110m2.json")
+			.defer(d3.tsv, "world-country-names.tsv")
             .await(ready);
 
-        function ready(error, country_data) {
-            // console.log(country_data)
+        function ready(error, country_data, country_name) {
 
-			var countries = topojson.feature(country_data, country_data.objects.countries).features;
-			// console.log(countries);
+			let countries = topojson.feature(country_data, country_data.objects.countries).features;
+			countries = countries.filter(function(d) {
+				return country_name.some(function(n) {
+				  	if (d.id == n.id) return d.name = n.name
+				})
+			});
+
 			svg.append("g")
 				.selectAll(".country")
 				.data(countries)
@@ -75,26 +96,35 @@
 				.attr("class", "country")
 				.attr("d", path)
 				.on("mouseover", function (d) {
-					d3.select(this).classed("selected",true);
+					d3.select(this).classed("selected", true);
                 })
-				.on("mouseout", function (d) {
-					d3.select(this).classed("selected",false);
-                });
+				.on("mousemove", showTooltip)
+				.on("mouseout",  function(d,i) {
+				    d3.select(this).classed("selected", false);
+				    tooltip.classed("hidden", true);
+				});
 
 			svg.append("g")
-				.append('path')
+				.append("path")
 				.datum(graticule)
-				.attr('class', 'graticule')
-				.attr('d', path);
+				.attr("class", "graticule")
+				.attr("d", path);
 
-			svg.append('path')
+			svg.append("path")
 				.datum(graticule.outline)
-				.attr('fill', 'none')
-				.attr('stroke','black')
-				.attr('d', path);
-
-
+				.attr("fill", "none")
+				.attr("stroke","black")
+				.attr("d", path);
         }
+
+        function showTooltip(d) {
+			label = d.name;
+			let mouse = d3.mouse(svg.node())
+				.map( function(d) { return parseInt(d); } );
+			tooltip.classed("hidden", false)
+                .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin) + "px")
+                .html(label);
+		}
 	</script>
 </body>
 </html>
