@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>task2</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://d3js.org/topojson.v0.min.js"></script>
+
+	<style>
+        body {
+            background-color: white;
+        }
+
+        svg {
+            border: 2px solid black;
+            background-color: #ffffff;
+        }
+
+        .land {
+            fill: #e3e3e3;
+            stroke: #766951;
+        }
+
+        .boundary {
+            fill: none;
+            stroke: grey;
+        }
+
+        .graticule {
+            fill: none;
+            stroke: #bdbdbd;
+            stroke-width: .5px;
+        }
+
+        .graticule :nth-child(2n) {
+            stroke-dasharray: 2, 2;
+        }
+
+    </style>
+
+</head>
+
+<body>
+	<script>
+		var num = 2.5,
+            width = 960*num,
+		    height = 480*num,
+            scale = 153*num;
+
+		var svg = d3.select("body").append("svg")
+		    .attr("width", width)
+		    .attr("height", height);
+
+		var projection = d3.geo.equirectangular()
+			.scale(scale)
+		    .translate([width/2,height/2]);
+
+
+		var path = d3.geo.path()
+		    .projection(projection);
+
+		var graticule = d3.geo.graticule();
+
+		d3.json("world-110m2.json", function(error, world) {
+		  	svg.append("g")
+		  		.attr("class", "land")
+				.selectAll("path")
+		  		.data([topojson.object(world, world.objects.land)])
+			    .enter().append("path")
+			    .attr("d", path);
+			svg.append("g")
+		  		.attr("class", "boundary")
+				.selectAll("boundary")
+		  		.data([topojson.object(world, world.objects.countries)])
+			    .enter().append("path")
+			    .attr("d", path);
+			svg.append("g")
+				.attr("class", "graticule")
+				.selectAll("path")
+				.data(graticule.lines)
+				.enter().append("path")
+				.attr("d", path);
+		});
+
+	</script>
+</body>
+</html>
