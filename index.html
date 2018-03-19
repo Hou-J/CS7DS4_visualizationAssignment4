@@ -123,13 +123,20 @@
 				.enter().append("circle")
 				.attr("r", radius)
 				.attr("cx", function (d) {
-				    let coords = projection([d.longitude,d.latitude]);
-				    return coords[0];
+				    // let coords = projection([d.longitude,d.latitude]);
+				    // return coords[0];
+                    return yieldCoords(d).next().value[0];
                 })
 				.attr("cy", function (d) {
-				    let coords = projection([d.longitude,d.latitude]);
-				    return coords[1];
+				    // let coords = projection([d.longitude,d.latitude]);
+				    // return coords[1];
+					return yieldCoords(d).next().value[1];
                 })
+        }
+
+        function* yieldCoords(d) {
+            let coords = projection([d.longitude,d.latitude]);
+            yield coords;
         }
 
         function showTooltip(d) {
