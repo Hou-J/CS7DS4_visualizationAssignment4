@@ -55,7 +55,8 @@
             width = 868 * num,
             height = 500 * num,
             scale = 159 * num,
-			mouseon_text_margin = 15;
+			mouseon_text_margin = 15,
+            radius = 5;
 
         let graticule = d3.geo.graticule();
 
@@ -78,9 +79,10 @@
         queue()
             .defer(d3.json, "world-110m2.json")
 			.defer(d3.tsv, "world-country-names.tsv")
+			.defer(d3.csv, "gtd_70to94.csv")
             .await(ready);
 
-        function ready(error, country_data, country_name) {
+        function ready(error, country_data, country_name, gtd) {
 
 			let countries = topojson.feature(country_data, country_data.objects.countries).features;
 			countries = countries.filter(function(d) {
@@ -115,6 +117,19 @@
 				.attr("fill", "none")
 				.attr("stroke","black")
 				.attr("d", path);
+
+			svg.selectAll(".incident-circle")
+				.data(gtd)
+				.enter().append("circle")
+				.attr("r", radius)
+				.attr("cx", function (d) {
+				    let coords = projection([d.longitude,d.latitude]);
+				    return coords[0];
+                })
+				.attr("cy", function (d) {
+				    let coords = projection([d.longitude,d.latitude]);
+				    return coords[1];
+                })
         }
 
         function showTooltip(d) {
