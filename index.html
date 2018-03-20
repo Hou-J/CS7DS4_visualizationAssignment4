@@ -7,6 +7,8 @@
 	<script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
 	<script src="https://d3js.org/topojson.v1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 
 	<style>
         body {
@@ -68,7 +70,8 @@
             height = 500 * num,
             scale = 159 * num,
 			mouseon_text_margin = 15,
-            radius = 5;
+            radius = 4,
+            color_scale = 500;
 
         let graticule = d3.geo.graticule();
 
@@ -84,7 +87,14 @@
 		let path = d3.geo.path()
 			.projection(projection);
 
-		let tooltip = d3.select("#map")
+        let colorScale = d3.scaleLinear()
+            .domain([color_scale,0])
+            .range(["rgb(46, 73, 123)", "rgb(71, 187, 94)"]);
+
+        colorScale = d3.scaleSequential(d3.interpolateMagma)
+            .domain([color_scale,0]);
+
+		let tool_tip = d3.select("#map")
 			.append("div")
 			.attr("class", "tooltip hidden");
 
@@ -119,7 +129,7 @@
 				.on("mousemove", showTooltip)
 				.on("mouseout",  function(d,i) {
 				    d3.select(this).classed("selected", false);
-				    tooltip.classed("hidden", true);
+				    tool_tip.classed("hidden", true);
 				});
 
 			svg.append("g")
@@ -128,13 +138,15 @@
 				.attr("class", "graticule")
 				.attr("d", path);
 
-			svg.append("path")
+			svg.append("g")
+                .append("path")
 				.datum(graticule.outline)
 				.attr("fill", "none")
 				.attr("stroke","black")
 				.attr("d", path);
 
-			svg.selectAll(".incident-circle")
+			svg.append("g")
+                .selectAll(".incident-circle")
 				.data(gtd)
 				.enter().append("circle")
 				.attr("r", radius)
@@ -148,6 +160,7 @@
 				    // return coords[1];
 					return yieldCoords(d).next().value[1];
                 })
+                .attr("fill", d=>colorScale(d.nkill))
                 .on("click", showInfoWindow)
 				.on("mouseout",  function(d,i) {
 				    info_window.classed("hidden", true);
@@ -163,7 +176,7 @@
 			label = d.name;
 			let mouse = d3.mouse(svg.node())
 				.map( function(d) { return parseInt(d); } );
-			tooltip.classed("hidden", false)
+			tool_tip.classed("hidden", false)
                 .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin) + "px")
                 .html(label);
 		}
@@ -172,7 +185,7 @@
 			label ="Year: "+ d.iyear + "<br>Kill: " + d.nkill + "<br>Wound: " + d.nwound + "<br>Property: " + d.propvalue;
 			let mouse = d3.mouse(svg.node())
 				.map( function(d) { return parseInt(d); } );
-			tooltip.classed("hidden", false)
+			tool_tip.classed("hidden", false)
                 .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin) + "px")
                 .html(label);
 		}
