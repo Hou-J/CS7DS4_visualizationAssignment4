@@ -138,6 +138,7 @@
         .attr("width", width)
         .attr("height", height);
 
+
     let path = d3.geo.path()
         .projection(projection);
 
@@ -202,6 +203,9 @@
         svg.append("g")
             .attr("id", "dot");
 
+        svg.append("g")
+            .attr("id", "cross");
+
         $(document).ready(function () {
             update();
 
@@ -249,7 +253,6 @@
             });
 
             function update() {
-                let i = 0;
                 let incident_circle = d3.select("#dot")
                     .selectAll("circle").data(gtd.filter(function (d) {
                         if (d.iyear === $("#slider").val()) {
@@ -263,8 +266,27 @@
                 d3.select("#dot")
                     .selectAll("circle")
                     .data(gtd.filter(function (d) {
-                        if (d.iyear === $("#slider").val()) {
+                        if (d.iyear === $("#slider").val() && d.nkill < 500) {
+                            $(".cross").remove();
                             return d;
+                        } else if (d.iyear === $("#slider").val() && d.nkill >= 500) {
+                            svg.append("g")
+                                .attr("class", "cross")
+                                .data(gtd.filter(function (d) {
+                                    if (d.iyear === $("#slider").val() && d.nkill >= 500) {
+                                        let coords = projection([d.longitude, d.latitude]);
+                                        return "translate(" + coords[0] + "," + coords[1] + ")";
+                                    }
+                                }))
+                                .attr("transform", function (d) {
+                                    let coords = projection([d.longitude, d.latitude]);
+                                    return "translate(" + coords[0] + "," + coords[1] + ")";
+                                })
+                                .append("path")
+                                .on("click", showInfoWindow)
+                                .on("mouseout", function (d, i) {
+                                    info_window.classed("hidden", true);
+                                });
                         }
                     }))
                     .attr("r", function (d) {
@@ -285,6 +307,23 @@
                         // return coords[1];
                         return yieldCoords(d).next().value[1];
                     });
+
+                let symbol = d3.symbol().size(200);
+
+                let cross_path = d3.select(".cross")
+                    .selectAll("path")
+                    .datum(function (d) {
+                        return d3["symbolCross"];
+                    });
+
+                d3.timer(function (elapsed) {
+                    cross_path.attr("d", function (d) {
+                        return symbol.type(d)();
+                    })
+                        .attr("transform", function (d) {
+                            return "rotate(" + elapsed / 20 + ")";
+                        });
+                });
             }
         })
     }
