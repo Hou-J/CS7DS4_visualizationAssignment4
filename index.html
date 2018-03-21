@@ -9,15 +9,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
     <style>
         body {
             background-color: white;
         }
 
-        /*#control {*/
-            /*margin-left: 100px;*/
-        /*}*/
+        #control {
+            margin-left: 400px;
+        }
 
         input[type='range'] {
             -webkit-appearance: none !important;
@@ -25,7 +26,7 @@
             -webkit-box-shadow: inset 0 0 5px #333;
             background-color: #e3e3e3;
             height: 10px;
-            width: 200px;
+            width: 600px;
             margin: 20px;
             /*position: relative;
              left: 10%;*/
@@ -105,8 +106,11 @@
 </head>
 
 <body>
+
+<svg></svg>
+
 <div id="control">
-    <input id="slider" type="range" min="2000" max="2011" value="2000" step="1"/>
+    <input id="slider" type="range" min="1970" max="2016" value="1970" step="1"/>
 
     <span id="range">1970</span>
 
@@ -114,6 +118,7 @@
 </div>
 
 <div id="map"></div>
+
 <script>
     let num = 1.8,
         width = 868 * num,
@@ -129,8 +134,7 @@
         .scale(scale)
         .translate([width / 2, height / 2]);
 
-    let svg = d3.select("body")
-        .append("svg")
+    let svg = d3.select("svg")
         .attr("width", width)
         .attr("height", height);
 
@@ -155,7 +159,7 @@
     queue()
         .defer(d3.json, "world-110m2.json")
         .defer(d3.tsv, "world-country-names.tsv")
-        .defer(d3.csv, "gtd_70to94.csv")
+        .defer(d3.csv, "gtd_final.csv")
         .await(ready);
 
     function ready(error, country_data, country_name, gtd) {
@@ -196,25 +200,93 @@
             .attr("d", path);
 
         svg.append("g")
-            .selectAll(".incident-circle")
-            .data(gtd)
-            .enter().append("circle")
-            .attr("r", radius)
-            .attr("cx", function (d) {
-                // let coords = projection([d.longitude,d.latitude]);
-                // return coords[0];
-                return yieldCoords(d).next().value[0];
-            })
-            .attr("cy", function (d) {
-                // let coords = projection([d.longitude,d.latitude]);
-                // return coords[1];
-                return yieldCoords(d).next().value[1];
-            })
-            .attr("fill", d => colorScale(d.nkill))
-            .on("click", showInfoWindow)
-            .on("mouseout", function (d, i) {
-                info_window.classed("hidden", true);
-            })
+            .attr("id", "dot");
+
+        $(document).ready(function () {
+            update();
+
+            let running = false,
+                timer,
+                duration = 2000,
+                maxstep = 2016,
+                minstep = 1970;
+
+
+            $("button").on("click", function () {
+                let sliderValue = $("#slider").val();
+                if (running === true) {
+                    $("button").html("Play");
+                    running = false;
+                    clearInterval(timer);
+                } else if (running === false && $("#slider").val() == maxstep) {
+                    sliderValue = minstep;
+                    $("#slider").val(minstep);
+                    $('#range').html(minstep);
+                    $("button").click();
+
+                } else if (running === false) {
+                    $("button").html("Pause");
+                    timer = setInterval(function () {
+                        if (sliderValue < maxstep) {
+                            sliderValue++;
+                            $("#slider").val(sliderValue);
+                            $('#range').html(sliderValue);
+                            update();
+                        } else {
+                            $("button").click();
+                        }
+                        $("#slider").val(sliderValue);
+                    }, duration);
+                    running = true;
+                }
+            });
+
+            $("#slider").on("change", function () {
+                update();
+                $("#range").html($("#slider").val());
+                clearInterval(timer);
+                $("button").html("Play");
+            });
+
+            function update() {
+                let i = 0;
+                let incident_circle = d3.select("#dot")
+                    .selectAll("circle").data(gtd.filter(function (d) {
+                        if (d.iyear === $("#slider").val()) {
+                            return d;
+                        }
+                    }));
+
+                incident_circle.exit().remove();
+                incident_circle.enter().append("circle").attr("r", 0);
+
+                d3.select("#dot")
+                    .selectAll("circle")
+                    .data(gtd.filter(function (d) {
+                        if (d.iyear === $("#slider").val()) {
+                            return d;
+                        }
+                    }))
+                    .attr("r", function (d) {
+                        return radius;
+                    })
+                    .attr("fill", d => colorScale(d.nkill))
+                    .on("click", showInfoWindow)
+                    .on("mouseout", function (d, i) {
+                        info_window.classed("hidden", true);
+                    })
+                    .attr("cx", function (d) {
+                        // let coords = projection([d.longitude,d.latitude]);
+                        // return coords[0];
+                        return yieldCoords(d).next().value[0];
+                    })
+                    .attr("cy", function (d) {
+                        // let coords = projection([d.longitude,d.latitude]);
+                        // return coords[1];
+                        return yieldCoords(d).next().value[1];
+                    });
+            }
+        })
     }
 
     function* yieldCoords(d) {
@@ -234,7 +306,7 @@
     }
 
     function showInfoWindow(d) {
-        label = "Year: " + d.iyear + "<br>Kill: " + d.nkill + "<br>Wound: " + d.nwound + "<br>Property: " + d.propvalue;
+        label = d.eventid + "<br>Year: " + d.iyear + "<br>Kill: " + d.nkill + "<br>Wound: " + d.nwound + "<br>Property: " + d.propvalue;
         let mouse = d3.mouse(svg.node())
             .map(function (d) {
                 return parseInt(d);
