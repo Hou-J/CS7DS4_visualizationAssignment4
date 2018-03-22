@@ -269,7 +269,12 @@
                         }
                     }));
 
-                incident_circle.exit().remove();
+                incident_circle.exit()
+                    .transition()
+                    .duration(dot_duration/2)
+                    .attr("r",0)
+                    .remove();
+
                 incident_circle.enter()
                     .append("circle")
                     .attr("r", 0)
