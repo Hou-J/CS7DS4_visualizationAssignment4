@@ -124,12 +124,12 @@
 <div id="map"></div>
 
 <script>
-    let num = 1.8,
+    let num = 1.7,
         width = 868 * num,
         height = 500 * num,
         scale = 159 * num,
         mouseon_text_margin = 15,
-        radius = 4,
+        radius = 3 * num,
         color_scale = 500,
         cross_n_kill = color_scale,
         dot_duration = 1000,
@@ -254,7 +254,9 @@
             $("button").click();
 
             $("#slider").on("change", function () {
-                $("button").click();
+                if (running === true) {
+                    $("button").click();
+                }
                 update();
                 $("#range").html($("#slider").val());
                 clearInterval(timer);
@@ -286,9 +288,10 @@
                     .selectAll("circle")
                     .data(gtd.filter(function (d) {
                         if (d.iyear === $("#slider").val() && d.nkill < cross_n_kill) {
-
                             $(".cross").remove();
-                            return d;
+                            if (d.longitude != 0) {
+                                return d;
+                            }
                         }
                         else if (d.iyear === $("#slider").val() && d.nkill >= cross_n_kill && d.longitude != 0) {
                             svg.selectAll(".cross")
