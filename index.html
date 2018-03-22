@@ -262,6 +262,12 @@
             });
 
             function update() {
+                d3.select("#dot")
+                    .selectAll("circle")
+                    .transition()
+                    .duration(dot_duration)
+                    .attr("r", 0);
+
                 let incident_circle = d3.select("#dot")
                     .selectAll("circle").data(gtd.filter(function (d) {
                         if (d.iyear === $("#slider").val()) {
@@ -270,22 +276,11 @@
                     }));
 
                 incident_circle.exit()
-                    .transition()
-                    .duration(dot_duration/2)
-                    .attr("r",0)
                     .remove();
 
                 incident_circle.enter()
                     .append("circle")
-                    .attr("r", 0)
-                    .attr("cx", function (d) {
-                        let coords = projection([0, 0]);
-                        return coords[0];
-                    })
-                    .attr("cy", function (d) {
-                        let coords = projection([0, 0]);
-                        return coords[1];
-                    });
+                    .attr("r", 0);
 
                 d3.select("#dot")
                     .selectAll("circle")
@@ -315,7 +310,7 @@
                                 .append("path");
                         }
                     }))
-                    .attr("r", radius)
+                    .attr("r", 0)
                     .attr("fill", d => colorScale(d.nkill))
                     .on("mouseover", function () {
                         d3.select(this).classed("dot_select", true);
@@ -325,8 +320,6 @@
                         d3.select(this).classed("dot_select", false);
                         info_window.classed("hidden", true);
                     })
-                    .transition()
-                    .duration(dot_duration)
                     .attr("cx", function (d) {
                         // let coords = projection([d.longitude,d.latitude]);
                         // return coords[0];
@@ -337,6 +330,12 @@
                         // return coords[1];
                         return yieldCoords(d).next().value[1];
                     });
+
+                d3.select("#dot")
+                    .selectAll("circle")
+                    .transition()
+                    .duration(dot_duration)
+                    .attr("r", radius);
 
                 let symbol = d3.symbol().size(cross_size);
 
