@@ -14,6 +14,7 @@
     <style>
         body {
             background-color: white;
+            /*background-image: url("bg.jpg");*/
         }
 
         #control {
@@ -105,15 +106,27 @@
             stroke: #d8d8d8;
             stroke-width: .5px;
         }
+
+        #svg {
+            position: absolute;
+            /*width: 1000px ;*/
+        }
+
+        td, th {
+            padding: 1px 4px;
+            border: 0.5px #d8d8d8 solid;
+        }
     </style>
 
 </head>
 
 <body>
+<h1 id="header">Global Terrorism Visualization</h1>
+<div id="svg">
+    <svg></svg>
+</div>
 
-<svg></svg>
-
-<div id="control">
+<div id="control" style="position: absolute">
     <input id="slider" type="range" min="1970" max="2016" value="1970" step="1"/>
 
     <span id="range">1970</span>
@@ -124,7 +137,7 @@
 <div id="map"></div>
 
 <script>
-    let num = 1.7,
+    let num = 1.4,
         width = 868 * num,
         height = 500 * num,
         scale = 159 * num,
@@ -140,8 +153,10 @@
     let projection = d3.geo.kavrayskiy7()
         .scale(scale)
         .translate([width / 2, height / 2]);
-
+    document.getElementById("header").style.marginLeft = (projection([180, 90])[0] + projection([-180, 90])[0] - 432) / 2 + "px";
+    document.getElementById("map").style.marginTop = projection([-180, 70])[1] + "px";
     document.getElementById("control").style.marginLeft = projection([-180, 90])[0] + "px";
+    document.getElementById("control").style.marginTop = projection([-180, -90])[1] + "px";
     document.querySelector('input[type="range"]').style.width = (projection([180, 90])[0] - projection([-180, 90])[0] - 170) + "px";
 
     let svg = d3.select("svg")
@@ -264,6 +279,7 @@
             });
 
             function update() {
+                $("#chart").remove()
                 d3.select("#dot")
                     .selectAll("circle")
                     .transition()
@@ -356,6 +372,81 @@
                             return "rotate(" + elapsed / 20 + ")";
                         });
                 });
+                let country_yearly_killed = [];
+                for (let i = 0; i < gtd.length; i++) {
+                    // console.log($("#slider").val())
+                    if ($("#slider").val() === gtd[i].iyear) {
+                        if (gtd[i].country_txt in country_yearly_killed) {
+                            country_yearly_killed[gtd[i].country_txt] += parseInt(gtd[i].nkill);
+                        } else {
+                            country_yearly_killed[gtd[i].country_txt] = parseInt(gtd[i].nkill);
+                        }
+                    }
+
+                }
+                let items = Object.keys(country_yearly_killed).map(function (key) {
+                    return [key, country_yearly_killed[key]];
+                });
+
+                items.sort(function (first, second) {
+                    return second[1] - first[1];
+                });
+                let top_ten = items.slice(0, 10);
+
+                function tabulate(data, columns) {
+                    d3.select('body')
+                        .append("g").attr("id", "chart")
+                        .attr("style", "margin-left: " + (width + projection([-170, 50])[1]) + "px")
+                        .append("text").attr("style", "font-size:20px")
+                        .text("10 countries with most killed in " + $("#slider").val() + ":\n")
+                    var table = d3.select("#chart")
+                        .append('table')
+                        .attr("style", "margin-left: 40px")
+
+                    // .attr("style", "position: absolute");
+                    var thead = table.append('thead')
+                    var tbody = table.append('tbody');
+
+                    // append the header row
+                    thead.append('tr')
+                        .selectAll('th')
+                        .data(columns).enter()
+                        .append('th')
+                        .text(function (column) {
+                            if (column == 0) {
+                                return "Country";
+                            }
+                            return "Killed"
+                        });
+
+                    // create a row for each object in the data
+                    var rows = tbody.selectAll('tr')
+                        .data(data)
+                        .enter()
+                        .append('tr');
+
+                    // create a cell in each row for each column
+                    var cells = rows.selectAll('td')
+                        .data(function (row) {
+                            return columns.map(function (column) {
+                                return {column: column, value: row[column]};
+                            });
+                        })
+                        .enter()
+                        .append('td')
+                        .text(function (d) {
+                            return d.value;
+                        });
+
+                    return table;
+                }
+
+                // render the table(s)
+                tabulate(top_ten, ['0', '1']); // 2 column table
+                document.getElementById("chart").style.position = "absolute";
+                document.getElementById("chart").style.marginLeft = projection([180, 0])[0] + projection([-170, 50])[1] + "px";
+                document.getElementById("chart").style.marginTop = projection([180, 50])[1] + "px";
+
             }
         })
     }
@@ -372,7 +463,7 @@
                 return parseInt(d);
             });
         tool_tip.classed("hidden", false)
-            .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin) + "px")
+            .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin + projection([-180, 70])[1]) + "px")
             .html(label);
     }
 
@@ -383,7 +474,7 @@
                 return parseInt(d);
             });
         tool_tip.classed("hidden", false)
-            .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin) + "px")
+            .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin + projection([-180, 70])[1]) + "px")
             .html(label);
     }
 </script>
