@@ -141,7 +141,7 @@
         width = 868 * num,
         height = 500 * num,
         scale = 159 * num,
-        mouseon_text_margin = 15,
+        mouseon_text_margin = 10,
         radius = 3 * num,
         color_scale = 500,
         cross_n_kill = color_scale,
@@ -154,7 +154,7 @@
         .scale(scale)
         .translate([width / 2, height / 2]);
     document.getElementById("header").style.marginLeft = (projection([180, 90])[0] + projection([-180, 90])[0] - 432) / 2 + "px";
-    document.getElementById("map").style.marginTop = projection([-180, 70])[1] + "px";
+    // document.getElementById("map").style.marginTop = projection([-180, 70])[1] + "px";
     document.getElementById("control").style.marginLeft = projection([-180, 90])[0] + "px";
     document.getElementById("control").style.marginTop = projection([-180, -90])[1] + "px";
     document.querySelector('input[type="range"]').style.width = (projection([180, 90])[0] - projection([-180, 90])[0] - 170) + "px";
@@ -463,18 +463,18 @@
                 return parseInt(d);
             });
         tool_tip.classed("hidden", false)
-            .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin + projection([-180, 70])[1]) + "px")
+            .attr("style", "left:" + (event.clientX + mouseon_text_margin) + "px;top:" + (event.clientY + mouseon_text_margin) + "px")
             .html(label);
     }
 
-    function showInfoWindow(d) {
+    function showInfoWindow(d,) {
         label = d.eventid + "<br>Year: " + d.iyear + "<br>Kill: " + d.nkill + "<br>Wound: " + d.nwound + "<br>Property: " + d.propvalue;
         let mouse = d3.mouse(svg.node())
             .map(function (d) {
                 return parseInt(d);
             });
         tool_tip.classed("hidden", false)
-            .attr("style", "left:" + (mouse[0] + mouseon_text_margin) + "px;top:" + (mouse[1] + mouseon_text_margin + projection([-180, 70])[1]) + "px")
+            .attr("style", "left:" + (event.clientX + mouseon_text_margin) + "px;top:" + (event.clientY + mouseon_text_margin) + "px")
             .html(label);
     }
 </script>
