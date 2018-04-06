@@ -9,9 +9,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
-	
-	<style>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+            integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+    <style>
         body {
             background-color: white;
             /*background-image: url("bg.jpg");*/
@@ -248,6 +249,7 @@
                     sliderValue = minstep;
                     $("#slider").val(minstep);
                     $('#range').html(minstep);
+                    update();
                     $("button").click();
 
                 } else if (running === false) {
@@ -447,6 +449,9 @@
                 document.getElementById("chart").style.marginLeft = projection([180, 0])[0] + projection([-170, 50])[1] + "px";
                 document.getElementById("chart").style.marginTop = projection([180, 50])[1] + "px";
 
+                if ($("#slider").val() === "1993") {
+                    svg.selectAll(".cross").remove()
+                }
             }
         })
     }
@@ -468,7 +473,14 @@
     }
 
     function showInfoWindow(d,) {
-        label = d.eventid + "<br>Year: " + d.iyear + "<br>Kill: " + d.nkill + "<br>Wound: " + d.nwound + "<br>Property: " + d.propvalue;
+        label = "Date: " + d.iyear + "/" + d.imonth + "/" + d.iday + "<br>" +
+            "Locataion: " + d.country_txt + "," + d.provstate + "," + d.city + "<br>" +
+            "Attack type: " + d.attacktype1_txt + "<br>" +
+            "Attack target: " + d.targtype1_txt + "<br>" +
+            "Kill: " + d.nkill + "<br>" +
+            "Wound: " + d.nwound + "<br>" +
+            "Additional notes: " + d.addnotes;
+
         let mouse = d3.mouse(svg.node())
             .map(function (d) {
                 return parseInt(d);
