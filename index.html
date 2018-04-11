@@ -190,7 +190,7 @@
     queue()
         .defer(d3.json, "world-110m2.json")
         .defer(d3.tsv, "world-country-names.tsv")
-        .defer(d3.csv, "gtd_final_1.csv")
+        .defer(d3.csv, "GTDFiltered.csv")
         .await(ready);
 
     function ready(error, country_data, country_name, gtd) {
@@ -510,7 +510,7 @@
         let g = svg1.append("g").attr("id", "chart1")
             .attr("transform", "translate(" + margin.left + "," + (margin.top + 550 * num) + ")");
 
-        d3.csv("down1.csv", function (d) {
+        d3.csv("GTDByCountryByYear.csv", function (d) {
             d[keys] = +d[keys];
             return d;
         }, function (error, data) {
