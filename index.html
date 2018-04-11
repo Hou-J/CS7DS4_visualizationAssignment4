@@ -15,7 +15,7 @@
     <style>
         body {
             background-color: white;
-            /*background-image: url("bg.jpg");*/
+            overflow: hidden;
         }
 
         #control {
@@ -30,15 +30,12 @@
             height: 10px;
             width: 600px;
             margin: 20px;
-            /*position: relative;
-             left: 10%;*/
         }
 
         input[type='range']::-webkit-slider-thumb {
             -webkit-appearance: none !important;
             -webkit-border-radius: 15px;
             background-color: #c3c3c3;
-            /*background-image: -webkit-gradient(linear, left top, left bottom, from(#bbb), to(#888));*/
             border: 0.5px solid #333;
             height: 25px;
             width: 25px;
@@ -110,23 +107,28 @@
 
         #svg {
             position: absolute;
-            /*width: 1000px ;*/
         }
 
         td, th {
             padding: 1px 4px;
             border: 0.5px #d8d8d8 solid;
         }
+
+        #asd {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
     </style>
 
 </head>
 
 <body>
-<h1 id="header">Global Terrorism Visualization</h1>
-<div id="svg">
-    <svg></svg>
-</div>
 
+
+<h1 id="header">Global Terrorism Visualization</h1>
+<svg id="asd"></svg>
 <div id="control" style="position: absolute">
     <input id="slider" type="range" min="1970" max="2016" value="1970" step="1"/>
 
@@ -138,7 +140,7 @@
 <div id="map"></div>
 
 <script>
-    let num = 1,
+    let num = 0.8,
         width = 868 * num,
         height = 500 * num,
         scale = 159 * num,
@@ -211,7 +213,11 @@
             .on("mouseout", function (d, i) {
                 d3.select(this).classed("selected", false);
                 tool_tip.classed("hidden", true);
+            })
+            .on("click", function (d) {
+                showChart(d.name)
             });
+        showChart("World")
 
         svg.append("g")
             .append("path")
@@ -234,7 +240,7 @@
 
             let running = false,
                 timer,
-                paly_duration = 3000,
+                paly_duration = 2000,
                 maxstep = 2016,
                 minstep = 1970;
 
@@ -287,14 +293,19 @@
                     .transition()
                     .duration(dot_duration)
                     .attr("r", 0);
-
+                // let count = 0;
                 let incident_circle = d3.select("#dot")
                     .selectAll("circle").data(gtd.filter(function (d) {
+                        // if (d.country_txt === "Laos") {
+                        //     if (d.iyear == $("#slider").val()) {
+                        //         count += parseInt(d.nkill)
+                        //     }
+                        // }
                         if (d.iyear === $("#slider").val()) {
                             return d;
                         }
                     }));
-
+                // console.log(count)
                 incident_circle.exit()
                     .remove();
 
@@ -342,13 +353,9 @@
                         info_window.classed("hidden", true);
                     })
                     .attr("cx", function (d) {
-                        // let coords = projection([d.longitude,d.latitude]);
-                        // return coords[0];
                         return yieldCoords(d).next().value[0];
                     })
                     .attr("cy", function (d) {
-                        // let coords = projection([d.longitude,d.latitude]);
-                        // return coords[1];
                         return yieldCoords(d).next().value[1];
                     });
 
@@ -376,7 +383,6 @@
                 });
                 let country_yearly_killed = [];
                 for (let i = 0; i < gtd.length; i++) {
-                    // console.log($("#slider").val())
                     if ($("#slider").val() === gtd[i].iyear) {
                         if (gtd[i].country_txt in country_yearly_killed) {
                             country_yearly_killed[gtd[i].country_txt] += parseInt(gtd[i].nkill);
@@ -405,7 +411,6 @@
                         .append('table')
                         .attr("style", "margin-left: 40px")
 
-                    // .attr("style", "position: absolute");
                     var thead = table.append('thead')
                     var tbody = table.append('tbody');
 
@@ -421,13 +426,11 @@
                             return "Killed"
                         });
 
-                    // create a row for each object in the data
                     var rows = tbody.selectAll('tr')
                         .data(data)
                         .enter()
                         .append('tr');
 
-                    // create a cell in each row for each column
                     var cells = rows.selectAll('td')
                         .data(function (row) {
                             return columns.map(function (column) {
@@ -443,7 +446,6 @@
                     return table;
                 }
 
-                // render the table(s)
                 tabulate(top_ten, ['0', '1']); // 2 column table
                 document.getElementById("chart").style.position = "absolute";
                 document.getElementById("chart").style.marginLeft = projection([180, 0])[0] + projection([-170, 50])[1] + "px";
@@ -479,6 +481,7 @@
             "Attack target: " + d.targtype1_txt + "<br>" +
             "Kill: " + d.nkill + "<br>" +
             "Wound: " + d.nwound + "<br>" +
+            "Weapon type:" + d.weaptype1_txt + "<br>" +
             "Additional notes: " + d.addnotes;
 
         let mouse = d3.mouse(svg.node())
@@ -489,6 +492,72 @@
             .attr("style", "left:" + (event.clientX + mouseon_text_margin) + "px;top:" + (event.clientY + mouseon_text_margin) + "px")
             .html(label);
     }
+
+    let keys = "World"
+
+    function showChart(keys) {
+        let svg1 = d3.select("#asd"),
+            margin = {top: 20, right: 20, bottom: 30, left: 40},
+            width1 = 1250 * num - margin.left - margin.right,
+            height1 = 200 * num - margin.top - margin.bottom;
+        d3.selectAll("#chart1").remove()
+        let x = d3.scaleBand().rangeRound([0, width1]).padding(0.1),
+            y = d3.scaleLinear().rangeRound([height1, 0]);
+
+        let g = svg1.append("g").attr("id", "chart1")
+            .attr("transform", "translate(" + margin.left + "," + (margin.top + 550 * num) + ")");
+
+        d3.csv("down1.csv", function (d) {
+            d[keys] = +d[keys];
+            return d;
+        }, function (error, data) {
+            if (error) throw error;
+
+            x.domain(data.map(function (d) {
+                return d.Year;
+            }));
+            y.domain([0, d3.max(data, function (d) {
+                return d[keys];
+            })]);
+
+            g.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + height1 + ")")
+                .call(d3.axisBottom(x)).selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", "rotate(-65)");
+
+            g.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y))
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", "0.71em")
+                .attr("text-anchor", "end")
+                .text(keys)
+                .attr("fill", "black");
+
+            g.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function (d) {
+                    return x(d.Year);
+                })
+                .attr("y", function (d) {
+                    return y(d[keys]);
+                })
+                .attr("width", x.bandwidth())
+                .attr("height", function (d) {
+                    return height1 - y(d[keys]);
+                })
+                .attr("fill", "#A7A7A7");
+        });
+    }
+
 </script>
 </body>
 </html>
