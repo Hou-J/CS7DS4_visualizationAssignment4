@@ -128,6 +128,7 @@
 
 
 <h1 id="header">Global Terrorism Visualization</h1>
+<span style="position: absolute; font-size: 10px;" id="note">Note: No data in 1993</span>
 <svg id="asd"></svg>
 <div id="control" style="position: absolute">
     <input id="slider" type="range" min="1970" max="2016" value="1970" step="1"/>
@@ -157,7 +158,8 @@
         .scale(scale)
         .translate([width / 2, height / 2]);
     document.getElementById("header").style.marginLeft = (projection([180, 90])[0] + projection([-180, 90])[0] - 432) / 2 + "px";
-    // document.getElementById("map").style.marginTop = projection([-180, 70])[1] + "px";
+    document.getElementById("note").style.marginTop = "610px";
+    document.getElementById("note").style.marginLeft = "900px";
     document.getElementById("control").style.marginLeft = projection([-180, 90])[0] + "px";
     document.getElementById("control").style.marginTop = projection([-180, -90])[1] + "px";
     document.querySelector('input[type="range"]').style.width = (projection([180, 90])[0] - projection([-180, 90])[0] - 170) + "px";
@@ -489,7 +491,8 @@
                 return parseInt(d);
             });
         tool_tip.classed("hidden", false)
-            .attr("style", "left:" + (event.clientX + mouseon_text_margin) + "px;top:" + (event.clientY + mouseon_text_margin) + "px")
+            .attr("style", "width: 250px; " +
+                "left:" + (event.clientX + mouseon_text_margin) + "px;top:" + (event.clientY + mouseon_text_margin) + "px")
             .html(label);
     }
 
