@@ -1,5 +1,5 @@
 # Global Terrorism Visualization
-Global Terrorism Visualization using D3.js
+[Global Terrorism Visualization using D3.js](https://hou-j.github.io/CS7DS4_visualizationAssignment4/)
 
 [GTD is a database](https://www.start.umd.edu/gtd/) of incidents of terrorism from 1970 to 2016 (with an incomplete data of 1993 due to issues with that year) which maintained by the University of Maryland. This visualization is for user centric, which means it tries to engage the user and convey insight to the audience, and it features three technical elements which are multiple coordinated views, animated view and interactive manipulation of the view.
 ## Introductions of the Design
